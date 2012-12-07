@@ -5,7 +5,7 @@
   "author": "{{author}}",
   "main": "index",
   "dependencies": {
-    "signal-channel": "~0.5.0",
+    "signal-channel": "~0.5.1",
     "scuttlebutt": "~5.0.1"
   },
   "devDependencies": {

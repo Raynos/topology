@@ -89,7 +89,85 @@ This assumes that as you make more hops the odds are you will
 
 Read more.
 
+# Examples
 
+All the network topologies in this module will be implemented
+    with the following api:
+
+`topology(channel, options, onConnection)`
+
+```js
+var topology = require("...")
+
+topology({
+    createNode: function createNode() {}
+    , createPeers: function createPeers() {}
+}, {
+    namespace: namespace
+    , id: id
+}, function (stream) {
+    ...
+})
+```
+
+options consists of an optional namespace and an optional id.
+
+The `id` is the id for the current node in the topology which
+    defaults to a uuid. You may want to overwrite this with
+    say a port if your using TCP as your channel.
+
+The `namespace` is a namespace parameter passed to `node.connect`
+    which allows you to basically ask the node to multiplex
+    for you. This only relevant if your node supports multi
+    plexing by default (like webRTC and datachannels)
+
+The `channel` consists of a `createPeers` method which should
+    return a `Peers` object that looks like [peer-nodes][12] and
+    of a `createNode` method which has should return a node
+    that has `.listen` and `.connect` method like
+    [peer-connection-network][14]
+
+The `onConnection` callback fires when we have a streaming
+    connection to another node in the network
+
+## fully connected
+
+A fully connected network will connect to every other peer in
+    the network.
+
+This means it uses the channel to create a node for itself then
+    connects to every peer that it hears about through the
+    peers object.
+
+In this example we replicate a scuttlebutt model over the network
+
+```js
+var fully = require("topology/fully")
+    , SignalChannel = require("signal-channel")
+    , Model = require("scuttlebutt/model")
+
+    , m = Model()
+    , channel = SignalChannel("unique namespace")
+    , key = Math.random() * 10
+    , value = Math.random() * 10
+
+m.on("update", function (update) {
+    console.log("updated!", update)
+})
+
+m.set(key, value)
+console.log("set key", key, "to", value)
+
+fully(channel, function (stream) {
+    var peerId = stream.peerId
+
+    stream
+        .pipe(m.createStream())
+        .pipe(stream)
+
+    console.log("connected to", peerId)
+})
+```
 
 ## References
 
@@ -117,3 +195,6 @@ Read more.
   [9]: http://en.wikipedia.org/wiki/Small-world_network
   [10]: http://en.wikipedia.org/wiki/Gnutella
   [11]: http://www.youtube.com/watch?v=LXAW4HwFt58&feature=relmfu
+  [12]: https://github.com/Raynos/peer-nodes#example
+  [13]: https://github.com/substack/dnode
+  [14]: https://github.com/Raynos/peer-connection-network

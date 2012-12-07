@@ -141,6 +141,11 @@ This means it uses the channel to create a node for itself then
 
 In this example we replicate a scuttlebutt model over the network
 
+Because we use signal-channel for the networking and because
+    signal-channel can be used on either node.js or browser
+    with the same API the below snippet works in browsers and
+    node without any code changes
+
 ```js
 var fully = require("topology/fully")
     , SignalChannel = require("signal-channel")

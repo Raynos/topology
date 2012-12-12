@@ -12,9 +12,10 @@ function FullyConnected(channel, options, callback) {
     callback = callback || noop
 
     var peers = channel.createPeers()
-        , node = channel.createNode(callback)
+        , node = channel.createNode(function (pc) {
+            callback(pc, false)
+        })
         , id = options.id || uuid()
-        , namespace = options.namespace || "default@namespace"
 
     peers.on("join", onPeer)
 
@@ -26,7 +27,11 @@ function FullyConnected(channel, options, callback) {
             return
         }
 
-        callback(node.connect(peer.id, namespace))
+        var pc = node.connect(peer.id)
+
+        pc.on("open", function () {
+            callback(pc, true)
+        })
     }
 
 }

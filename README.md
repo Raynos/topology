@@ -147,7 +147,7 @@ Because we use signal-channel for the networking and because
     node without any code changes
 
 ```js
-var fully = require("topology/fully")
+var fully = require("../../fully")
     , SignalChannel = require("signal-channel")
     , Model = require("scuttlebutt/model")
 
@@ -163,14 +163,26 @@ m.on("update", function (update) {
 m.set(key, value)
 console.log("set key", key, "to", value)
 
-fully(channel, function (stream) {
-    var peerId = stream.peerId
+fully(channel, function (conn, opener) {
+    var peerId = conn.peerId
 
-    stream
-        .pipe(m.createStream())
-        .pipe(stream)
+    if (opener) {
+        hookUp(conn.createStream("model"))
+    } else {
+        conn.on("connection", function (stream) {
+            if (stream.meta === "model") {
+                hookUp(stream)
+            }
+        })
+    }
 
     console.log("connected to", peerId)
+
+    function hookUp(stream) {
+        stream
+            .pipe(m.createStream())
+            .pipe(stream)
+    }
 })
 ```
 
